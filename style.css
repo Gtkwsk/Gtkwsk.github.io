@@ -81,3 +81,22 @@ nav a[aria-current="page"]{color:var(--teal)}
 .eyebrow.dark{color:var(--teal)}
 @media (max-width:760px){.cards.two{grid-template-columns:1fr}.teaser{flex-direction:column;align-items:flex-start;padding:22px}.teaser-section{padding-bottom:56px}}
 @media (max-width:420px){nav{gap:10px}nav a{font-size:13px}}
+.crumbs a{color:var(--teal-l);text-decoration:none}.crumbs a:hover{text-decoration:underline}.crumbs span{color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tile{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-decoration:none;color:var(--ink);box-shadow:0 6px 24px rgba(15,39,71,.05);transition:transform .15s,border-color .15s}
+.tile:hover{transform:translateY(-2px);border-color:var(--teal)}
+.tile-icon{font-size:28px;width:52px;height:52px;display:grid;place-items:center;border-radius:12px;background:#e6f4f5;margin-bottom:6px}
+.tile-name{font-family:Lora,Georgia,serif;font-weight:700;font-size:21px;color:var(--navy)}
+.tile-desc{color:var(--muted);font-size:15px;flex:1}
+.tile-status{align-self:flex-start;margin-top:8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:#eef2f5;color:var(--muted)}
+.tile-status.has{background:var(--teal);color:#fff}
+.app-list{padding-left:20px;max-width:780px}.app-list li{margin:8px 0}
+.pending{display:flex;gap:20px;align-items:flex-start;background:#fff;border:1px dashed #b9cfd4;border-radius:var(--radius);padding:28px;max-width:780px}
+.pending-icon{font-size:30px;width:60px;height:60px;flex:none;display:grid;place-items:center;border-radius:14px;background:#e6f4f5}
+.pending-title{font-family:Lora,Georgia,serif;font-weight:700;font-size:21px;color:var(--navy);margin:0 0 4px}
+.pending p{margin:0 0 10px}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.tiles{grid-template-columns:1fr}.pending{flex-direction:column;padding:22px}}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}}
+nav.crumbs{display:block}
+nav.crumbs a{font-size:inherit;font-weight:inherit;color:var(--teal-l)}
