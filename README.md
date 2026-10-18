@@ -1,4 +1,4 @@
-# Psychoterapia i technologia – Robert Gutkowski
+# Psychoterapia i edukacja w epoce AI
 
 Statyczna strona (HTML/CSS, bez kroku budowania) dla GitHub Pages: https://gtkwsk.github.io/
 
