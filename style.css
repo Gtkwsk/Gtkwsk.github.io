@@ -67,3 +67,17 @@ nav a:hover{color:var(--teal)}
 @media (max-width:420px){.brand-text{display:none}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
 .signature{font-family:Lora,Georgia,serif;font-style:italic;color:var(--navy);margin-bottom:0}
+nav a[aria-current="page"]{color:var(--teal)}
+.hero-sub{padding:72px 0 80px}
+.hero-sub .eyebrow a{color:var(--teal-l);text-decoration:none}
+.prose{max-width:780px}
+.principles{padding-left:20px}.principles li{margin:8px 0}
+.cards.two{grid-template-columns:1fr 1fr}
+.app-icon.edu{background:#e6f4f5}
+.note{color:var(--muted);margin-top:24px}
+.teaser-section{padding:0 0 80px}
+.teaser{display:flex;align-items:center;justify-content:space-between;gap:24px;background:var(--soft);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:var(--radius);padding:28px 32px}
+.teaser h2{margin-bottom:.3em}.teaser p{margin:0;max-width:60ch}
+.eyebrow.dark{color:var(--teal)}
+@media (max-width:760px){.cards.two{grid-template-columns:1fr}.teaser{flex-direction:column;align-items:flex-start;padding:22px}.teaser-section{padding-bottom:56px}}
+@media (max-width:420px){nav{gap:10px}nav a{font-size:13px}}
