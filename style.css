@@ -100,3 +100,22 @@ nav a[aria-current="page"]{color:var(--teal)}
 @media (prefers-reduced-motion:reduce){.tile{transition:none}}
 nav.crumbs{display:block}
 nav.crumbs a{font-size:inherit;font-weight:inherit;color:var(--teal-l)}
+/* struktura: obszary, wpisy, o mnie */
+.areas{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.area,.post-teaser{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px;text-decoration:none;color:var(--ink);box-shadow:0 6px 24px rgba(15,39,71,.06);transition:transform .15s,border-color .15s}
+.area:hover,.post-teaser:hover{transform:translateY(-2px);border-color:var(--teal)}
+.area-icon{font-size:32px;width:64px;height:64px;display:grid;place-items:center;border-radius:16px;background:#e6f4f5;margin-bottom:4px}
+.area-name{font-family:Lora,Georgia,serif;font-weight:700;font-size:clamp(24px,3vw,30px);color:var(--navy);line-height:1.2}
+.area-desc{color:var(--muted);flex:1}
+.area-more{color:var(--teal);font-weight:700;margin-top:6px}
+.post-teaser{max-width:760px;padding:28px}
+.post-teaser .meta{margin:0}
+.post-teaser-title{font-family:Lora,Georgia,serif;font-weight:700;font-size:22px;color:var(--navy)}
+.posts{display:flex;flex-direction:column;gap:24px}
+.post-title{font-size:clamp(24px,3vw,30px)}
+h2.h3{font-size:22px;margin-top:1.4em}
+.creds{padding-left:20px}.creds li{margin:8px 0}
+.practice .btn{margin-bottom:6px}
+.practice-label.second{margin-top:20px}
+@media (max-width:760px){.areas{grid-template-columns:1fr}.area{padding:24px}}
+@media (prefers-reduced-motion:reduce){.area,.post-teaser{transition:none}}
