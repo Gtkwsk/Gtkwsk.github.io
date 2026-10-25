@@ -133,3 +133,11 @@ body:has(#dla-psychoterapeutow:target) .switch a[href="#dla-psychoterapeutow"]{b
 .anchor-alias{display:block;position:relative;top:-72px;visibility:hidden}
 @media (max-width:560px){.switch{display:flex;width:100%}.switch a{padding:10px 8px;font-size:.95rem}}
 .cards.one{grid-template-columns:1fr;max-width:780px}
+.videos{display:flex;flex-wrap:wrap;gap:32px;justify-content:flex-start}
+.video{margin:0;flex:1 1 280px;max-width:360px}
+.video-frame{aspect-ratio:9/16;border-radius:var(--radius);overflow:hidden;background:var(--navy);border:1px solid var(--line);box-shadow:0 6px 24px rgba(15,39,71,.06)}
+.video-frame iframe{display:block;width:100%;height:100%;border:0}
+.video figcaption{margin-top:12px;font-size:15px;color:var(--muted)}
+.video figcaption strong{color:var(--navy)}
+.video figcaption a{font-weight:700}
+@media (max-width:760px){.videos{justify-content:center}.video{max-width:360px;width:100%}}
