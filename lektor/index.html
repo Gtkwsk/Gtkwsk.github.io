@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lektor dwujęzyczny</title>
+<meta name="description" content="Czyta na zmianę zdanie polskie i zdanie oryginału. Wklej tekst, przetłumacz, słuchaj.">
+<meta name="theme-color" content="#245c9a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b2129" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lektor">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,700;1,7..72,400&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ===== Biblioteka ===== -->
+<main id="view-home" class="view">
+  <header class="topbar">
+    <h1>Lektor dwujęzyczny</h1>
+    <button class="icon-btn" id="btn-settings" title="Ustawienia" aria-label="Ustawienia">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+  <div class="content">
+    <div id="key-warning" class="card" hidden>
+      <h2>Brak klucza API</h2>
+      <p class="hint">Czytać możesz już teraz (próbka poniżej). Żeby tłumaczyć własne teksty, wpisz klucz Anthropic w ustawieniach.</p>
+      <div class="row"><button class="btn primary" id="btn-goto-key">Ustawienia i instrukcja</button></div>
+    </div>
+    <div class="projects" id="projects"></div>
+    <div class="fab-wrap"><button class="btn primary" id="btn-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Nowy tekst</button></div>
+  </div>
+</main>
+
+<!-- ===== Nowy tekst ===== -->
+<main id="view-new" class="view" hidden>
+  <header class="topbar">
+    <button class="icon-btn" data-back title="Wróć" aria-label="Wróć"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1>Nowy tekst</h1>
+  </header>
+  <div class="content">
+    <label class="field"><span>Tytuł</span><input type="text" id="new-title" placeholder="np. Teología de los sexos — rozdział I" autocomplete="off"></label>
+    <div class="row">
+      <label class="field grow"><span>Język oryginału</span>
+        <select id="new-lang">
+          <option value="auto">Rozpoznaj automatycznie</option>
+          <option value="es">hiszpański</option><option value="en">angielski</option><option value="de">niemiecki</option>
+          <option value="fr">francuski</option><option value="it">włoski</option><option value="pt">portugalski</option>
+          <option value="la">łaciński</option><option value="ru">rosyjski</option><option value="uk">ukraiński</option>
+          <option value="cs">czeski</option><option value="nl">niderlandzki</option><option value="el">grecki</option>
+        </select></label>
+      <label class="field grow"><span>Układ wklejonego tekstu</span>
+        <select id="new-mode">
+          <option value="auto">Rozpoznaj (PDF / akapity)</option>
+          <option value="wrapped">Linie łamane jak w PDF</option>
+          <option value="lines">Każda linia to akapit</option>
+        </select></label>
+    </div>
+    <label class="field"><span>Wskazówka dla tłumacza (opcjonalnie)</span>
+      <input type="text" id="new-context" placeholder="np. tekst teologiczny, terminologia katolicka; „Señor” → „Pan”"></label>
+    <label class="field"><span>Tekst</span>
+      <textarea id="new-text" class="big" placeholder="Wklej tutaj tekst — może być cała książka."></textarea></label>
+    <p class="hint" id="new-stats">Wklej tekst, a pokażę liczbę akapitów i zdań.</p>
+    <div class="row">
+      <button class="btn primary" id="btn-create-translate">Zapisz i tłumacz</button>
+      <button class="btn" id="btn-create-only">Zapisz bez tłumaczenia</button>
+    </div>
+    <details class="card">
+      <summary>Import projektu z pliku</summary>
+      <p class="hint">Plik .json wyeksportowany z tej aplikacji (np. z komputera).</p>
+      <input type="file" id="import-file" accept=".json,application/json">
+    </details>
+  </div>
+</main>
+
+<!-- ===== Tłumaczenie ===== -->
+<main id="view-translate" class="view" hidden>
+  <header class="topbar">
+    <button class="icon-btn" data-back title="Wróć" aria-label="Wróć"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1 id="tr-title">Tłumaczenie</h1>
+  </header>
+  <div class="content">
+    <div class="card">
+      <div class="progress"><i id="tr-bar"></i></div>
+      <dl class="kv">
+        <dt>Zdania</dt><dd id="tr-sent">—</dd>
+        <dt>Fragmenty</dt><dd id="tr-chunks">—</dd>
+        <dt>Model</dt><dd id="tr-model">—</dd>
+        <dt>Tokeny</dt><dd id="tr-tokens">—</dd>
+        <dt>Koszt (szacunek)</dt><dd id="tr-cost">—</dd>
+      </dl>
+      <p id="tr-status" class="hint">Gotowe do startu.</p>
+      <p id="tr-error" class="error" hidden></p>
+      <div class="row">
+        <button class="btn primary" id="btn-tr-start">Start</button>
+        <button class="btn" id="btn-tr-stop" hidden>Zatrzymaj</button>
+        <button class="btn" id="btn-tr-read">Czytaj (można w trakcie)</button>
+      </div>
+    </div>
+    <p class="hint">Tłumaczenie idzie fragmentami i zapisuje się na bieżąco. Na telefonie zostaw ten ekran otwarty (nie gaśnie sam), bo Chrome w tle usypia stronę. Możesz zamknąć ten ekran, wrócić później i wznowić — przetłumaczone fragmenty nie przepadają. Zdania bez tłumaczenia lektor na razie pomija.</p>
+  </div>
+</main>
+
+<!-- ===== Czytnik ===== -->
+<main id="view-reader" class="view" hidden>
+  <header class="topbar">
+    <button class="icon-btn" data-back title="Wróć" aria-label="Wróć"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1 id="rd-title">Czytnik</h1>
+    <span class="status-chip" id="rd-trchip" hidden>tłumaczę…</span>
+    <span class="counter" id="rd-counter">0 / 0</span>
+  </header>
+  <div class="progress thin"><i id="rd-bar"></i></div>
+  <div class="panes" id="panes">
+    <div class="pane" id="pane-src" tabindex="0"><span class="tag" id="tag-src">oryginał</span><div id="pane-src-body"></div></div>
+    <div class="pane" id="pane-tgt" tabindex="0"><span class="tag">polski</span><div id="pane-tgt-body"></div></div>
+  </div>
+  <div class="listen-only" id="listen-only" hidden>
+    <div class="big" id="lo-counter">0</div>
+    <div id="lo-info">zdanie</div>
+    <div class="small">Tekst ukryty — tryb słuchania</div>
+  </div>
+  <div class="controls">
+    <div class="main">
+      <button class="icon-btn" id="btn-prev" title="Poprzednie zdanie" aria-label="Poprzednie zdanie"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l9-6v12z"/></svg></button>
+      <button class="play" id="btn-play" title="Odtwarzaj / pauza" aria-label="Odtwarzaj">
+        <svg id="ico-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="ico-pause" viewBox="0 0 24 24" fill="currentColor" hidden><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-next" title="Następne zdanie" aria-label="Następne zdanie"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM5.5 6l9 6-9 6z"/></svg></button>
+    </div>
+    <div class="sub">
+      <button class="chip" id="btn-repeat" title="Powtórz bieżące zdanie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Powtórz</button>
+      <button class="chip" id="btn-order" title="Kolejność czytania">oryg. → pol.</button>
+      <button class="chip" id="btn-text" title="Widok tekstu">oba teksty</button>
+      <button class="chip" id="btn-playback" title="Ustawienia odtwarzania"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Więcej</button>
+    </div>
+  </div>
+</main>
+
+<!-- ===== Ustawienia odtwarzania (arkusz) ===== -->
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+<div id="sheet" class="sheet" hidden role="dialog" aria-label="Ustawienia odtwarzania">
+  <div class="grab"></div>
+  <h2>Odtwarzanie</h2>
+  <div class="stack">
+    <span class="hint">Kolejność</span>
+    <div class="seg" id="seg-order">
+      <button data-v="src-tgt">oryginał → polski</button>
+      <button data-v="tgt-src">polski → oryginał</button>
+      <button data-v="src-tgt-src">oryg. → pol. → oryg.</button>
+      <button data-v="src">tylko oryginał</button>
+      <button data-v="tgt">tylko polski</button>
+    </div>
+    <span class="hint">Tekst na ekranie</span>
+    <div class="seg" id="seg-text">
+      <button data-v="both">oba</button>
+      <button data-v="src">tylko oryginał</button>
+      <button data-v="tgt">tylko polski</button>
+      <button data-v="none">bez tekstu</button>
+    </div>
+    <div class="slider"><span>Tempo oryginału</span><output id="out-rate-src">0.9×</output><input type="range" id="rate-src" min="0.5" max="1.6" step="0.05"></div>
+    <div class="slider"><span>Tempo polskiego</span><output id="out-rate-tgt">1.0×</output><input type="range" id="rate-tgt" min="0.5" max="1.6" step="0.05"></div>
+    <div class="slider"><span>Przerwa między językami</span><output id="out-pause-mid">0.6 s</output><input type="range" id="pause-mid" min="0" max="3" step="0.1"></div>
+    <div class="slider"><span>Przerwa po parze zdań</span><output id="out-pause-end">1.0 s</output><input type="range" id="pause-end" min="0" max="4" step="0.1"></div>
+    <div class="slider"><span>Wielkość tekstu</span><output id="out-font">18 px</output><input type="range" id="font-size" min="14" max="28" step="1"></div>
+    <label class="check"><input type="checkbox" id="opt-keepalive"><span>Czytaj dalej przy zgaszonym ekranie (cicha ścieżka w tle, sterowanie z ekranu blokady)</span></label>
+    <label class="check"><input type="checkbox" id="opt-wakelock"><span>Nie gaś ekranu podczas czytania</span></label>
+    <div class="row"><button class="btn" id="btn-sheet-voices">Głosy i język</button><button class="btn primary grow" id="btn-sheet-close">Gotowe</button></div>
+  </div>
+</div>
+
+<!-- ===== Ustawienia ===== -->
+<main id="view-settings" class="view" hidden>
+  <header class="topbar">
+    <button class="icon-btn" data-back title="Wróć" aria-label="Wróć"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1>Ustawienia</h1>
+  </header>
+  <div class="content">
+    <div class="card" id="card-api">
+      <h2>Tłumaczenie (Anthropic API)</h2>
+      <label class="field"><span>Klucz API</span><input type="password" id="set-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"></label>
+      <div class="row">
+        <button class="btn" id="btn-test-key">Sprawdź klucz</button>
+        <span id="key-status" class="hint"></span>
+      </div>
+      <label class="field"><span>Model</span>
+        <select id="set-model">
+          <option value="claude-sonnet-5-5">claude-sonnet-5-5 (polecany: jakość)</option>
+          <option value="claude-haiku-5-5">claude-haiku-5-5 (szybszy, tańszy)</option>
+          <option value="claude-opus-5-5">claude-opus-5-5 (najdroższy)</option>
+        </select></label>
+      <div class="row">
+        <label class="field grow"><span>Równoległe zapytania</span><input type="number" id="set-conc" min="1" max="6" step="1"></label>
+        <label class="field grow"><span>Zdań w fragmencie</span><input type="number" id="set-chunk" min="5" max="60" step="1"></label>
+      </div>
+      <div class="row">
+        <label class="field grow"><span>Stawka wejście ($/mln tok.)</span><input type="number" id="set-rate-in" min="0" step="0.01"></label>
+        <label class="field grow"><span>Stawka wyjście ($/mln tok.)</span><input type="number" id="set-rate-out" min="0" step="0.01"></label>
+      </div>
+      <p class="hint">Klucz zostaje tylko w tej przeglądarce. Stawki służą wyłącznie do szacowania kosztu — sprawdź aktualny cennik na stronie Anthropic.</p>
+      <details>
+        <summary>Jak zdobyć klucz API (5 minut)</summary>
+        <ol class="steps small">
+          <li>Wejdź na <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> i załóż konto (można tym samym mailem co Claude).</li>
+          <li>W menu <b>Billing</b> dodaj kartę i doładuj np. 5–10 $ (to wystarcza na kilka książek).</li>
+          <li>W menu <b>API Keys</b> kliknij <b>Create Key</b>, nadaj nazwę (np. „Lektor”) i skopiuj klucz — pokazuje się tylko raz.</li>
+          <li>Wklej klucz w pole powyżej i kliknij „Sprawdź klucz”.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card" id="card-voices">
+      <h2>Głosy</h2>
+      <p class="hint" id="voices-hint">Głosy pochodzą z systemu (na Androidzie: silnik Google „Zamiana tekstu na mowę”).</p>
+      <div id="voice-list" class="stack"></div>
+      <div class="row"><button class="btn" id="btn-voices-refresh">Odśwież listę głosów</button><button class="btn" id="btn-voices-test">Przetestuj głosy</button></div>
+      <details>
+        <summary>Lepsze głosy na Androidzie</summary>
+        <ol class="steps small">
+          <li>Ustawienia telefonu → wyszukaj „Zamiana tekstu na mowę” (lub: System → Języki → Zamiana tekstu na mowę).</li>
+          <li>Wybierz silnik <b>Google</b> → ikona ustawień → <b>Instaluj dane głosowe</b>.</li>
+          <li>Pobierz głosy dla polskiego i języków oryginału (np. hiszpański (Hiszpania)). Jeśli jest wybór jakości, weź wyższą.</li>
+          <li>Wróć tutaj i kliknij „Odśwież listę głosów”.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Wygląd</h2>
+      <label class="field"><span>Motyw</span>
+        <select id="set-theme"><option value="auto">Jak w systemie</option><option value="light">Jasny</option><option value="dark">Ciemny</option></select></label>
+    </div>
+
+    <div class="card">
+      <h2>O aplikacji</h2>
+      <p class="hint">Lektor dwujęzyczny czyta na zmianę zdanie oryginału i jego polskie tłumaczenie. Tekst i tłumaczenia są zapisane w tej przeglądarce (eksport w bibliotece robi kopię do pliku). Na telefonie dodaj stronę do ekranu głównego — zachowuje się jak aplikacja.</p>
+      <p class="hint" id="about-version"></p>
+    </div>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
