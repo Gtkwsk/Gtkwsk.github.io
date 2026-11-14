@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1216">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>Mój Rowerek · Ampera</title>
+<style>
+:root{--bg:#0e1216;--card:#161c22;--card2:#1e262e;--line:#28323c;--txt:#e9eef3;--mut:#8d9aa7;--acc:#ff8a3d;--blue:#4cb0ff;--ok:#3ddc84;--warn:#ffcc4d;--bad:#ff5c5c;--led:#ff8a00}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:rgba(14,18,22,.93);backdrop-filter:blur(8px);display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+header h1{font-size:17px;margin:0;flex:1;font-weight:650}
+header h1 small{color:var(--mut);font-weight:500;font-size:12px;margin-left:4px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--bad);flex:none}
+.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.wait{background:var(--warn);animation:pul 1.2s infinite}
+.dot.demo{background:var(--blue)}
+@keyframes pul{50%{opacity:.35}}
+main{max-width:760px;margin:0 auto;padding:12px}
+.view{display:none}.view.act{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin-bottom:8px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.small{font-size:13px}.mut{color:var(--mut)}.hidden{display:none!important}
+.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#1a0d02}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#03210f}
+.btn.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:9px}
+.btn.grow{flex:1}
+#btnConnect{flex:1 1 100%}
+#btnDemo,#btnHR{flex:1}
+.btn:disabled{opacity:.4}
+#connInfo{margin-top:10px;line-height:1.45}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.levels button{background:var(--card2);border:2px solid var(--line);color:var(--txt);border-radius:14px;padding:12px 0;font-size:20px;font-weight:750;font-family:inherit}
+.levels button small{display:block;font-size:11px;color:var(--mut);font-weight:500}
+.levels button.act{border-color:var(--led);background:color-mix(in srgb,var(--led) 22%,var(--card2))}
+.gaugeCard{position:relative;padding:8px 14px 4px;text-align:center}
+.gauge{width:100%;max-width:300px;display:block;margin:0 auto}
+.gbg{fill:none;stroke:var(--card2);stroke-width:14;stroke-linecap:round}
+.gfg{fill:none;stroke:var(--led);stroke-width:14;stroke-linecap:round;transition:stroke-dasharray .6s;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--led) 60%,transparent))}
+.gval{position:absolute;left:0;right:0;top:50%;transform:translateY(-46%)}
+.big{font-size:58px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.unit{color:var(--mut);font-size:14px;margin-top:2px}
+.cad{margin-top:10px;font-size:15px;color:var(--mut)}.cad b{color:var(--blue);font-size:24px;font-variant-numeric:tabular-nums}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.tile .t{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.tile .v{font-size:23px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:12px;color:var(--mut);font-weight:500;margin-left:3px}
+canvas{width:100%;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.swatches button{aspect-ratio:1;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.swatches button.act{border-color:#fff;box-shadow:0 0 12px currentColor}
+.bar{height:10px;background:var(--card2);border-radius:6px;overflow:hidden}
+.bar>div{height:100%;background:var(--ok);border-radius:6px;transition:width .5s}
+.prof{display:flex;align-items:flex-end;gap:2px;height:44px;position:relative;margin:8px 0 4px}
+.prof div{border-radius:3px 3px 0 0;min-width:2px;opacity:.85}
+.prof .now{position:absolute;top:-4px;bottom:0;width:2px;background:#fff;border-radius:1px;box-shadow:0 0 6px #fff}
+.segNow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.segNow .cd{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums}
+.tgt{display:inline-block;padding:4px 10px;border-radius:20px;font-weight:700;font-size:14px;background:var(--card2)}
+.tgt.ok{background:color-mix(in srgb,var(--ok) 25%,transparent);color:var(--ok)}
+.tgt.lo,.tgt.hi{background:color-mix(in srgb,var(--warn) 25%,transparent);color:var(--warn)}
+.plist .card h3{margin:0 0 2px;font-size:17px}
+.days{display:flex;align-items:flex-end;gap:4px;height:110px;margin-top:6px}
+.days .d{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.days .d div{width:100%;background:var(--acc);border-radius:4px 4px 0 0;min-height:2px}
+.days .d div.goal{background:var(--ok)}
+.days .d span{font-size:10px;color:var(--mut)}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.sum b{display:block;font-size:20px}
+.sess{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.sess:first-child{border-top:0}
+.sess .x{background:none;border:0;color:var(--mut);font-size:18px;cursor:pointer}
+label.f{display:block;margin-bottom:12px;font-size:14px}
+label.f span{display:block;color:var(--mut);font-size:12px;margin-bottom:4px}
+input,select,textarea{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;font-family:inherit;width:100%}
+textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;min-height:120px}
+label.chk{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:15px}
+label.chk input{width:22px;height:22px;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:#11161b;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav.tabs button{flex:1;background:none;border:0;color:var(--mut);padding:8px 2px 9px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
+nav.tabs button .ic{font-size:21px;line-height:1}
+nav.tabs button.act{color:var(--acc)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:760px;max-height:92vh;overflow:auto;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+.seg{background:var(--card2);border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:12px;padding:10px;margin-bottom:8px}
+.seg .g{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:6px}
+.seg .g label{font-size:11px;color:var(--mut)}
+.seg .g input,.seg .g select{padding:7px 6px;font-size:14px}
+.seg .tools{display:flex;gap:6px;margin-top:6px;align-items:center}
+.seg .tools input{flex:1;padding:7px 8px;font-size:14px}
+.seg .tools button{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:8px;width:34px;height:34px;font-size:15px;flex:none}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#000c;border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;z-index:30;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+pre.log{background:#0a0d10;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:11.5px;line-height:1.45;max-height:340px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:8px 0 0}
+.svc{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;background:var(--card2)}
+.svc h4{margin:0 0 6px;font-size:14px}
+.chr{border-top:1px solid var(--line);padding:8px 0;font-size:13px}
+.chr code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:6px;background:var(--card);border:1px solid var(--line);margin-right:3px;color:var(--mut)}
+.val{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--blue);margin-top:4px;word-break:break-all}
+.val b{color:var(--warn)}
+.help{font-size:13px;line-height:1.55;color:#c3ccd5}
+.help ol{padding-left:20px;margin:6px 0}
+.ring{display:flex;align-items:center;gap:12px}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="hdrDot"></span>
+  <h1>Mój Rowerek <small>Ampera</small></h1>
+  <span id="hdrState" class="mut small">Rozłączony</span>
+</header>
+
+<main>
+<!-- ============ JAZDA ============ -->
+<section class="view act" id="v-ride">
+  <div class="card">
+    <div class="row">
+      <button class="btn pri grow" id="btnConnect">🔗 Połącz rowerek</button>
+      <button class="btn" id="btnDemo">🎮 Demo</button>
+      <button class="btn" id="btnHR">❤️ Pas HR</button>
+    </div>
+    <div class="small mut" id="connInfo"></div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Opór</div>
+    <div class="levels" id="levels"></div>
+    <div class="small mut" id="lvlNote" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card gaugeCard">
+    <svg viewBox="0 0 200 172" class="gauge" aria-hidden="true">
+      <path d="M43.43 156.57 A80 80 0 1 1 156.57 156.57" class="gbg" pathLength="100"/>
+      <path id="gArc" d="M43.43 156.57 A80 80 0 1 1 156.57 156.57" class="gfg" pathLength="100" stroke-dasharray="0 100"/>
+    </svg>
+    <div class="gval">
+      <div id="vPow" class="big">0</div>
+      <div class="unit">wat <span id="vPowEst"></span></div>
+      <div class="cad"><b id="vCad">0</b> obr/min</div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="progCard">
+    <div class="lbl" id="progTitle">Program</div>
+    <div class="segNow">
+      <div>
+        <div id="segName" style="font-size:18px;font-weight:700"></div>
+        <div class="small mut" id="segInfo"></div>
+        <div style="margin-top:8px"><span class="tgt" id="segTgt"></span></div>
+      </div>
+      <div style="text-align:right"><div class="cd" id="segCd">0:00</div><div class="small mut">do końca etapu</div></div>
+    </div>
+    <div class="prof" id="progProf"></div>
+    <div class="row small mut" style="justify-content:space-between"><span id="progNext"></span><span id="progLeft"></span></div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" id="btnSkip">⏭ Następny etap</button><button class="btn sm bad" id="btnProgStop">Przerwij program</button></div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="t">Czas</div><div class="v" id="vTime">0:00</div></div>
+    <div class="tile"><div class="t">Dystans</div><div class="v"><span id="vDist">0,00</span><small>km</small></div></div>
+    <div class="tile"><div class="t">Kalorie</div><div class="v"><span id="vKcal">0</span><small>kcal</small></div></div>
+    <div class="tile"><div class="t">Prędkość</div><div class="v"><span id="vSpd">0,0</span><small>km/h</small></div></div>
+    <div class="tile"><div class="t">Wyprodukowano</div><div class="v"><span id="vWh">0,0</span><small>Wh</small></div></div>
+    <div class="tile"><div class="t">Tętno</div><div class="v"><span id="vHR">–</span><small>bpm</small></div></div>
+    <div class="tile"><div class="t">Śr. moc</div><div class="v"><span id="vAvgP">0</span><small>W</small></div></div>
+    <div class="tile"><div class="t">Maks. moc</div><div class="v"><span id="vMaxP">0</span><small>W</small></div></div>
+  </div>
+
+  <div class="card row">
+    <button class="btn ok grow" id="btnStart">▶ Start</button>
+    <button class="btn grow" id="btnPause" disabled>⏸ Pauza</button>
+    <button class="btn bad grow" id="btnStop" disabled>■ Zakończ</button>
+  </div>
+  <div class="small mut" id="sesNote" style="margin:-4px 4px 12px"></div>
+
+  <div class="card">
+    <div class="lbl">Ostatnie 3 minuty</div>
+    <canvas id="chart" height="150"></canvas>
+    <div class="legend"><span><i style="background:var(--led)"></i>moc [W]</span><span><i style="background:var(--blue)"></i>kadencja [obr/min]</span></div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Kolor świateł LED</div>
+    <div class="swatches" id="swatches"></div>
+    <div class="small mut" id="ledNote" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Dzisiaj</div>
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><span id="todayTxt">0 min</span><span class="mut small" id="goalTxt"></span></div>
+    <div class="bar"><div id="goalBar" style="width:0%"></div></div>
+  </div>
+</section>
+
+<!-- ============ PROGRAMY ============ -->
+<section class="view" id="v-prog">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div><b>Twoje programy</b><div class="small mut">Ułóż etapy: czas, opór, kadencja, kolor LED, komunikat głosowy.</div></div>
+      <button class="btn pri" id="btnNewProg">＋ Nowy</button>
+    </div>
+  </div>
+  <div class="plist" id="progList"></div>
+</section>
+
+<!-- ============ HISTORIA ============ -->
+<section class="view" id="v-hist">
+  <div class="card">
+    <div class="lbl">Podsumowanie</div>
+    <div class="sum" id="histSum"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Ostatnie 14 dni (minuty)</div>
+    <div class="days" id="days"></div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px">
+      <div class="lbl" style="margin:0">Treningi</div>
+      <div class="row"><button class="btn sm" id="btnCsv">⬇ CSV</button></div>
+    </div>
+    <div id="sessList"></div>
+  </div>
+</section>
+
+<!-- ============ LABORATORIUM ============ -->
+<section class="view" id="v-lab">
+  <div class="card help">
+    <b>Laboratorium Bluetooth</b> – tutaj podglądasz, co rowerek wysyła, i uczysz aplikację jego „języka”.
+    <ol>
+      <li>Zamknij oryginalną aplikację LifeSpan (rowerek łączy się tylko z jedną naraz).</li>
+      <li>Kręć pedałami (Ampera budzi się od pedałowania) i kliknij <b>Połącz</b>.</li>
+      <li>Włącz <b>Nagrywanie</b>. Kręć raz wolno, raz szybko. Przy każdej zmianie wpisz znacznik, np. „teraz 80 obr/min”.</li>
+      <li>Kliknij <b>Udostępnij log</b> i wyślij go Claude'owi – rozpisze dekoder i komendy, które wkleisz w Ustawieniach.</li>
+    </ol>
+    Jeśli lista usług jest pusta, sprawdź w aplikacji <i>nRF Connect</i> UUID usług rowerka i dopisz je w Ustawieniach → „Dodatkowe UUID usług”, potem połącz ponownie.
+  </div>
+  <div class="card">
+    <div class="row">
+      <button class="btn pri" id="labConnect">🔗 Połącz</button>
+      <button class="btn" id="labRec">⏺ Nagrywanie: wył.</button>
+      <button class="btn" id="labShare">📤 Udostępnij log</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="labMark" placeholder="Znacznik, np. opór L3, kręcę 70 obr/min" style="flex:1">
+      <button class="btn sm" id="labMarkBtn">★ Dodaj</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn sm" id="labCopy">Kopiuj</button>
+      <button class="btn sm" id="labDl">Pobierz .txt</button>
+      <button class="btn sm" id="labClear">Wyczyść</button>
+      <span class="small mut" id="labCount"></span>
+    </div>
+    <pre class="log" id="labLog">(log jest pusty)</pre>
+  </div>
+  <div class="card">
+    <div class="lbl">Usługi i charakterystyki</div>
+    <div class="small mut" id="labDev">Brak połączenia.</div>
+    <div id="labTree"></div>
+  </div>
+</section>
+
+<!-- ============ USTAWIENIA ============ -->
+<section class="view" id="v-set">
+  <div class="card">
+    <div class="lbl">Trening</div>
+    <div class="grid2">
+      <label class="f"><span>Dzienny cel (minuty)</span><input type="number" id="s-goalMin" min="1"></label>
+      <label class="f"><span>Auto-koniec po bezczynności (min, 0 = wył.)</span><input type="number" id="s-autoStopMin" min="0"></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="s-autoStart">Startuj trening automatycznie, gdy zaczynam kręcić</label>
+    <label class="chk"><input type="checkbox" id="s-autoPause">Auto-pauza, gdy przestaję kręcić</label>
+    <label class="chk"><input type="checkbox" id="s-autoReconnect">Łącz ponownie automatycznie (Ampera usypia bez pedałowania)</label>
+    <label class="chk"><input type="checkbox" id="s-voice">Komunikaty głosowe po polsku</label>
+    <label class="chk"><input type="checkbox" id="s-beep">Sygnały dźwiękowe (odliczanie etapów)</label>
+    <label class="chk"><input type="checkbox" id="s-wakeLock">Nie wygaszaj ekranu podczas treningu</label>
+  </div>
+  <div class="card">
+    <div class="lbl">Przeliczniki (gdy rowerek czegoś nie podaje)</div>
+    <div class="grid2">
+      <label class="f"><span>Prędkość: km/h na 1 obr/min</span><input type="number" step="0.01" id="s-speedFactor"></label>
+      <label class="f"><span>Skala wskaźnika mocy (W)</span><input type="number" id="s-gaugeMax"></label>
+      <label class="f"><span>Szac. moc: a (W na obr/min)</span><input type="number" step="0.01" id="s-estA"></label>
+      <label class="f"><span>Szac. moc: b (× poziom oporu)</span><input type="number" step="0.01" id="s-estB"></label>
+    </div>
+    <div class="small mut">Szacowana moc = obr/min × (a + b × opór). Używana tylko, gdy rowerek nie przysyła mocy.</div>
+  </div>
+  <div class="card">
+    <div class="lbl">Bluetooth – zaawansowane</div>
+    <label class="f"><span>Dodatkowe UUID usług (jedno w linii, np. fff0 albo pełny UUID)</span><textarea id="s-extraUuids" style="min-height:70px"></textarea></label>
+    <label class="f"><span>Dekoder danych (JSON)</span><textarea id="s-decoder"></textarea></label>
+    <details class="small mut" style="margin:-4px 0 12px"><summary>Przykład dekodera</summary><pre class="log">{
+  "rules": [
+    {
+      "char": "fff1",
+      "prefix": "a1",
+      "fields": {
+        "power":      { "offset": 2, "type": "u16le" },
+        "cadence":    { "offset": 4, "type": "u8" },
+        "resistance": { "offset": 5, "type": "u8" },
+        "speed":      { "offset": 6, "type": "u16le", "scale": 0.01 }
+      }
+    }
+  ]
+}
+Pola: power, cadence, speed, resistance, heartRate, battery
+Typy: u8 s8 u16le u16be s16le s16be u24le u24be u32le u32be</pre></details>
+    <label class="f"><span>Komendy do rowerka (JSON)</span><textarea id="s-commands"></textarea></label>
+    <details class="small mut" style="margin:-4px 0 12px"><summary>Przykład komend</summary><pre class="log">{
+  "char": "fff2",
+  "init": ["a0 01"],
+  "resistance": { "1": "a2 01", "2": "a2 02", "3": "a2 03", "4": "a2 04" },
+  "led": { "1": "a3 01", "2": "a3 02" },
+  "poll": [ { "hex": ["a1 00", "a1 01"], "everyMs": 500 } ]
+}
+init – wysyłane po połączeniu; led – numery kolorów 1–12;
+poll – zapytania wysyłane cyklicznie (jeśli rowerek sam nie nadaje).</pre></details>
+    <div class="row"><button class="btn pri" id="btnSaveSet">Zapisz ustawienia</button><span class="small" id="setErr" style="color:var(--bad)"></span></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Kopia zapasowa</div>
+    <div class="row">
+      <button class="btn" id="btnBackup">⬇ Eksportuj wszystko</button>
+      <button class="btn" id="btnRestore">⬆ Importuj</button>
+      <input type="file" id="fileRestore" accept="application/json,.json" class="hidden">
+    </div>
+    <div class="small mut" style="margin-top:8px">Dane (programy, historia, ustawienia) są zapisywane tylko w tej przeglądarce na tym urządzeniu.</div>
+  </div>
+</section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-v="ride" class="act"><span class="ic">🚲</span>Jazda</button>
+  <button data-v="prog"><span class="ic">📋</span>Programy</button>
+  <button data-v="hist"><span class="ic">📈</span>Historia</button>
+  <button data-v="lab"><span class="ic">🧪</span>Laboratorium</button>
+  <button data-v="set"><span class="ic">⚙️</span>Ustawienia</button>
+</nav>
+<div id="modal" class="modal hidden"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ================= narzędzia ================= */
+const $ = s => document.querySelector(s);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+const nf = (v, d = 0) => Number(v || 0).toLocaleString('pl-PL', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pad = n => String(n).padStart(2, '0');
+function fmtT(s) { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h ? `${h}:${pad(m)}:${pad(x)}` : `${m}:${pad(x)}`; }
+function fmtSpeech(s) { const m = Math.floor(s / 60), x = s % 60; let t = ''; if (m) t += m + (m === 1 ? ' minuta' : (m % 10 >= 2 && m % 10 <= 4 && (m % 100 < 10 || m % 100 >= 20)) ? ' minuty' : ' minut'); if (x) t += (t ? ' ' : '') + x + ' sekund'; return t; }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2600); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function download(name, text, type = 'text/plain') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+
+/* UUID */
+const U = n => '0000' + n.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+function normUuid(s) {
+  if (typeof s === 'number') return U(s);
+  s = String(s || '').trim().toLowerCase().replace(/^0x/, '');
+  if (/^[0-9a-f]{4}$/.test(s)) return U(parseInt(s, 16));
+  if (/^[0-9a-f]{8}$/.test(s)) return s + '-0000-1000-8000-00805f9b34fb';
+  if (/^[0-9a-f]{32}$/.test(s)) return s.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+  return s;
+}
+const shortU = u => { const m = /^0000([0-9a-f]{4})-0000-1000-8000-00805f9b34fb$/.exec(u); return m ? m[1] : u; };
+function hexToBytes(h) { h = String(h || '').replace(/0x/gi, '').replace(/[^0-9a-f]/gi, ''); if (h.length % 2) h = '0' + h; const b = new Uint8Array(h.length / 2); for (let i = 0; i < b.length; i++) b[i] = parseInt(h.substr(i * 2, 2), 16); return b; }
+const bytesToHex = b => [...b].map(x => x.toString(16).padStart(2, '0')).join(' ');
+
+const NAMES = {
+  '1826': 'Fitness Machine (FTMS)', '1818': 'Cycling Power', '1816': 'Cycling Speed & Cadence', '180d': 'Heart Rate', '180a': 'Device Information', '180f': 'Bateria',
+  '2ad2': 'Dane roweru (FTMS)', '2ad9': 'Punkt sterowania FTMS', '2acc': 'Funkcje FTMS', '2ada': 'Status FTMS', '2a63': 'Pomiar mocy', '2a5b': 'Kadencja CSC', '2a37': 'Tętno', '2a19': 'Poziom baterii',
+  '2a29': 'Producent', '2a24': 'Model', '2a25': 'Nr seryjny', '2a26': 'Firmware', '2a27': 'Hardware', '2a28': 'Software',
+  '6e400001-b5a3-f393-e0a9-e50e24dcca9e': 'Nordic UART', '6e400002-b5a3-f393-e0a9-e50e24dcca9e': 'UART RX (zapis)', '6e400003-b5a3-f393-e0a9-e50e24dcca9e': 'UART TX (dane)'
+};
+const KNOWN_SERVICES = [0x1826, 0x1818, 0x1816, 0x180d, 0x180a, 0x180f, 0xfff0, 0xffe0, 0xffb0, 0xff00, 0xfee0, 0xfee7, 0xae00, 0xffc0, 0xfd00,
+  '6e400001-b5a3-f393-e0a9-e50e24dcca9e', '49535343-fe7d-4ae5-8fa9-9fafd205e455', '0000fff0-0000-1000-8000-00805f9b34fb'];
+
+const COLORS = [null,
+  ['Czerwony', '#ff3b30'], ['Pomarańczowy', '#ff8a00'], ['Żółty', '#ffd60a'], ['Limonkowy', '#a8e10c'], ['Zielony', '#34c759'], ['Morski', '#00c7a3'],
+  ['Błękitny', '#32d4ff'], ['Niebieski', '#0a84ff'], ['Indygo', '#5e5ce6'], ['Fioletowy', '#bf5af2'], ['Różowy', '#ff2d92'], ['Biały', '#f2f2f7']];
+
+/* ================= dane ================= */
+const DEF_CFG = {
+  goalMin: 30, autoStopMin: 5, autoStart: true, autoPause: true, autoReconnect: true, voice: true, beep: true, wakeLock: true,
+  speedFactor: 0.3, gaugeMax: 200, estA: 0.35, estB: 0.25, extraUuids: '',
+  decoder: '{\n  "rules": []\n}',
+  commands: '{\n  "char": "",\n  "init": [],\n  "resistance": {},\n  "led": {},\n  "poll": []\n}'
+};
+const seg = (min, lvl, rpm, color, note) => ({ dur: Math.round(min * 60), lvl, rpm, color, note });
+function defaultPrograms() {
+  const iv = [seg(4, 1, 55, 7, 'Rozgrzewka')];
+  for (let i = 1; i <= 6; i++) { iv.push(seg(1, 4, 70, 1, 'Mocno, seria ' + i)); iv.push(seg(1, 1, 55, 5, 'Odpoczynek')); }
+  iv.push(seg(4, 1, 50, 8, 'Wyciszenie'));
+  return [
+    { id: uid(), name: 'Rozgrzewka 10 min', segs: [seg(3, 1, 55, 7, 'Spokojny start'), seg(4, 2, 60, 2, 'Trochę mocniej'), seg(3, 1, 55, 8, 'Luz')] },
+    { id: uid(), name: 'Interwały 20 min', segs: iv },
+    { id: uid(), name: 'Praca przy biurku 45 min', segs: [seg(15, 1, 50, 5, 'Lekko, skup się na pracy'), seg(15, 2, 50, 7, 'Odrobinę mocniej'), seg(15, 1, 45, 8, 'Lekko do końca')] }
+  ];
+}
+let cfg = Object.assign({}, DEF_CFG, LS.get('rowerek.cfg', {}));
+let programs = LS.get('rowerek.programs', null) || defaultPrograms();
+let hist = LS.get('rowerek.history', []);
+let decoderObj = { rules: [] }, cmdObj = {};
+function parseCfgJson() {
+  try { decoderObj = JSON.parse(cfg.decoder || '{}'); if (!Array.isArray(decoderObj.rules)) decoderObj.rules = []; } catch (e) { decoderObj = { rules: [] }; }
+  try { cmdObj = JSON.parse(cfg.commands || '{}') || {}; } catch (e) { cmdObj = {}; }
+}
+parseCfgJson();
+const saveCfg = () => LS.set('rowerek.cfg', cfg), savePrograms = () => LS.set('rowerek.programs', programs), saveHist = () => LS.set('rowerek.history', hist);
+const state = { level: LS.get('rowerek.level', 1), led: LS.get('rowerek.led', 2) };
+
+/* ================= pomiary na żywo ================= */
+const live = {};
+function setMetric(n, v, src) { if (typeof v !== 'number' || !isFinite(v)) return; live[n] = { v, t: performance.now(), src }; lastDataAt = performance.now(); }
+function getMetric(n, stale = 3000) { const m = live[n]; if (!m || performance.now() - m.t > stale) return null; return m.v; }
+let lastDataAt = 0;
+function curLevel() { const r = getMetric('resistance', 15000); return (r >= 1 && r <= 4) ? Math.round(r) : state.level; }
+function current() {
+  const cad = getMetric('cadence') ?? 0, lvl = curLevel();
+  let pow = getMetric('power'), est = false;
+  if (pow == null) { pow = cad > 0 ? cad * (cfg.estA + cfg.estB * lvl) : 0; est = true; }
+  const sp = getMetric('speed');
+  return { cad, pow: Math.max(0, pow), est, spd: sp != null ? sp : cad * cfg.speedFactor, hr: getMetric('heartRate', 5000), lvl };
+}
+
+/* ================= parsery standardowe ================= */
+function parseFTMS(dv) {
+  let o = 0; const f = dv.getUint16(o, true); o += 2;
+  if (!(f & 1)) { setMetric('speed', dv.getUint16(o, true) / 100, 'FTMS'); o += 2; }
+  if (f & 2) o += 2;
+  if (f & 4) { setMetric('cadence', dv.getUint16(o, true) / 2, 'FTMS'); o += 2; }
+  if (f & 8) o += 2;
+  if (f & 16) o += 3;
+  if (f & 32) o += 2;
+  if (f & 64) { setMetric('power', dv.getInt16(o, true), 'FTMS'); o += 2; }
+  if (f & 128) o += 2;
+  if (f & 256) o += 5;
+  if (f & 512) { setMetric('heartRate', dv.getUint8(o), 'FTMS'); o += 1; }
+}
+const crankSt = {};
+function crank(revs, time, src) {
+  const p = crankSt[src]; crankSt[src] = { revs, time };
+  if (!p) return;
+  const dr = (revs - p.revs + 65536) % 65536, dt = ((time - p.time + 65536) % 65536) / 1024;
+  if (dr > 0 && dr < 30 && dt > 0) setMetric('cadence', dr / dt * 60, src);
+}
+function parseCPS(dv) {
+  let o = 0; const f = dv.getUint16(o, true); o += 2;
+  setMetric('power', dv.getInt16(o, true), 'CPS'); o += 2;
+  if (f & 1) o += 1; if (f & 4) o += 2; if (f & 16) o += 6;
+  if (f & 32 && o + 4 <= dv.byteLength) crank(dv.getUint16(o, true), dv.getUint16(o + 2, true), 'CPS');
+}
+function parseCSC(dv) { let o = 1; const f = dv.getUint8(0); if (f & 1) o += 6; if (f & 2 && o + 4 <= dv.byteLength) crank(dv.getUint16(o, true), dv.getUint16(o + 2, true), 'CSC'); }
+function parseHR(dv, src) { const f = dv.getUint8(0); setMetric('heartRate', f & 1 ? dv.getUint16(1, true) : dv.getUint8(1), src); }
+
+/* ================= dekoder własny ================= */
+const FT = { u8: 1, s8: 1, u16le: 2, u16be: 2, s16le: 2, s16be: 2, u24le: 3, u24be: 3, u32le: 4, u32be: 4 };
+function readField(dv, f) {
+  const o = f.offset | 0, t = String(f.type || 'u8').toLowerCase(), L = FT[t];
+  if (L == null || o + L > dv.byteLength) return null;
+  const b = i => dv.getUint8(o + i);
+  switch (t) {
+    case 'u8': return b(0); case 's8': return dv.getInt8(o);
+    case 'u16le': return dv.getUint16(o, true); case 'u16be': return dv.getUint16(o, false);
+    case 's16le': return dv.getInt16(o, true); case 's16be': return dv.getInt16(o, false);
+    case 'u24le': return b(0) | b(1) << 8 | b(2) << 16; case 'u24be': return b(0) << 16 | b(1) << 8 | b(2);
+    case 'u32le': return dv.getUint32(o, true); case 'u32be': return dv.getUint32(o, false);
+  }
+  return null;
+}
+function applyRules(uuid, dv) {
+  for (const r of decoderObj.rules) {
+    if (normUuid(r.char) !== uuid) continue;
+    if (r.minLength && dv.byteLength < r.minLength) continue;
+    if (r.prefix) { const p = hexToBytes(r.prefix); if (dv.byteLength < p.length || p.some((x, i) => dv.getUint8(i) !== x)) continue; }
+    for (const [metric, f] of Object.entries(r.fields || {})) {
+      const v = readField(dv, f); if (v == null) continue;
+      setMetric(metric, v * (f.scale ?? 1) + (f.add ?? 0), 'dekoder');
+    }
+  }
+}
+
+/* ================= Bluetooth ================= */
+const conn = { mode: 'off', device: null, server: null, tree: [], chars: new Map(), ftmsCP: null, manual: false, drivers: [], polls: [] };
+const hrc = { device: null };
+let gq = Promise.resolve();
+function gatt(fn) { const p = gq.then(() => fn()); gq = p.catch(() => {}); return p; }
+function optionalList() {
+  const extra = String(cfg.extraUuids || '').split(/[\s,;]+/).filter(Boolean);
+  const all = [...KNOWN_SERVICES, ...extra, ...decoderObj.rules.map(r => r.service).filter(Boolean)].map(normUuid);
+  return [...new Set(all)].filter(u => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(u));
+}
+function btWhy() {
+  if (!window.isSecureContext) return 'Bluetooth nie działa, gdy aplikacja jest otwarta jako plik z telefonu. Musi być otwarta z adresu https:// (np. z Twojej strony na GitHubie) w Chrome.';
+  if (!navigator.bluetooth) return 'Ta przeglądarka nie obsługuje Bluetooth. Otwórz aplikację w Chrome na Androidzie (nie w podglądzie plików ani w innej przeglądarce).';
+  return '';
+}
+function btOk() {
+  const w = btWhy(); if (!w) return true;
+  toast(w); $('#connInfo').innerHTML = '<span style="color:var(--warn)">' + esc(w) + '</span>';
+  return false;
+}
+function setMode(m) {
+  conn.mode = m;
+  const dot = $('#hdrDot'); dot.className = 'dot ' + ({ on: 'on', waiting: 'wait', connecting: 'wait', demo: 'demo' }[m] || '');
+  const name = conn.device?.name || 'rowerek';
+  $('#hdrState').textContent = { off: 'Rozłączony', connecting: 'Łączenie…', on: 'Połączono', waiting: 'Czekam…', demo: 'Tryb demo' }[m];
+  $('#btnConnect').textContent = (m === 'off' || m === 'demo') ? '🔗 Połącz rowerek' : '✖ Rozłącz';
+  $('#btnDemo').textContent = m === 'demo' ? '⏹ Zakończ demo' : '🎮 Demo';
+  $('#labConnect').textContent = (m === 'off' || m === 'demo') ? '🔗 Połącz' : '✖ Rozłącz';
+  let info = '';
+  if (m === 'off') info = 'Zamknij oryginalną aplikację LifeSpan, pokręć pedałami i kliknij „Połącz rowerek”. Na liście wybierz urządzenie z numerem z naklejki z kodem QR.';
+  if (m === 'connecting') info = 'Łączę się z ' + esc(name) + '…';
+  if (m === 'waiting') info = 'Połączenie przerwane – czekam na ' + esc(name) + '. Pokręć pedałami, żeby go obudzić.';
+  if (m === 'on') info = '<b>' + esc(name) + '</b> · ' + (conn.drivers.length ? 'rozpoznane dane: ' + conn.drivers.join(', ') : 'nie rozpoznaję jeszcze danych – zajrzyj do Laboratorium');
+  if (m === 'demo') info = 'Tryb demo – symulowane dane, żeby wypróbować aplikację bez rowerka.';
+  $('#connInfo').innerHTML = info;
+  renderLevels(); renderLed();
+}
+async function connectBike() {
+  if (!btOk()) return;
+  if (conn.mode === 'demo') stopDemo();
+  let device;
+  try {
+    device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: optionalList() });
+  } catch (e) {
+    if (e.name === 'NotFoundError') { if (!/cancel/i.test(e.message)) toast('Nie znaleziono urządzeń – włącz Bluetooth i lokalizację w telefonie, pokręć pedałami.'); }
+    else if (e.name === 'SecurityError') toast('Brak zgody na Bluetooth – zezwól Chrome na „Urządzenia w pobliżu” i lokalizację.');
+    else toast('Bluetooth: ' + e.message);
+    labLog('! requestDevice: ' + e.name + ' – ' + e.message); return;
+  }
+  if (conn.device && conn.device !== device) conn.device.removeEventListener('gattserverdisconnected', onDisc);
+  conn.device = device; conn.manual = false;
+  device.addEventListener('gattserverdisconnected', onDisc);
+  labLog('# Wybrano urządzenie: ' + (device.name || '(bez nazwy)') + ' id=' + device.id);
+  try { await openGatt(); } catch (e) { labLog('! ' + e.message); toast('Nie udało się połączyć: ' + e.message); if (cfg.autoReconnect) { setMode('waiting'); scheduleReconnect(); } else setMode('off'); }
+}
+async function openGatt() {
+  setMode('connecting');
+  const server = await conn.device.gatt.connect();
+  conn.server = server; conn.tree = []; conn.chars.clear(); conn.ftmsCP = null; conn.drivers = [];
+  let services = [];
+  try { services = await server.getPrimaryServices(); } catch (e) { labLog('! getPrimaryServices: ' + e.message); }
+  for (const s of services) {
+    let chars = [];
+    try { chars = await s.getCharacteristics(); } catch (e) {}
+    conn.tree.push({ service: s, chars });
+    for (const c of chars) conn.chars.set(c.uuid, c);
+  }
+  labLog('# Połączono. Usługi: ' + (services.map(s => shortU(s.uuid)).join(', ') || 'brak widocznych'));
+  for (const c of conn.chars.values()) {
+    if (c.properties.notify || c.properties.indicate) {
+      c.addEventListener('characteristicvaluechanged', onNotify);
+      try { await gatt(() => c.startNotifications()); } catch (e) { labLog('! notify ' + shortU(c.uuid) + ': ' + e.message); }
+    }
+  }
+  const has = n => conn.chars.has(U(n));
+  if (has(0x2ad2)) conn.drivers.push('FTMS');
+  if (has(0x2a63)) conn.drivers.push('moc (CPS)');
+  if (has(0x2a5b)) conn.drivers.push('kadencja (CSC)');
+  if (has(0x2a37)) conn.drivers.push('tętno');
+  if (decoderObj.rules.some(r => conn.chars.has(normUuid(r.char)))) conn.drivers.push('własny dekoder');
+  if (has(0x2ad9)) { conn.ftmsCP = conn.chars.get(U(0x2ad9)); try { await writeBytes(conn.ftmsCP, [0x00]); await writeBytes(conn.ftmsCP, [0x07]); } catch (e) {} }
+  if (has(0x2a19)) { try { const v = await gatt(() => conn.chars.get(U(0x2a19)).readValue()); setMetric('battery', v.getUint8(0), 'bat'); } catch (e) {} }
+  setMode('on');
+  renderLabTree();
+  await startCommands();
+  if (state.level > 1) setResistance(state.level, true);
+}
+function onDisc() {
+  stopPolls(); conn.chars.clear(); conn.ftmsCP = null;
+  labLog('# Rozłączono');
+  if (conn.mode === 'demo') return;
+  if (conn.manual || !cfg.autoReconnect) { setMode('off'); return; }
+  setMode('waiting'); scheduleReconnect();
+}
+let rcT = null;
+function scheduleReconnect() {
+  clearTimeout(rcT);
+  if (conn.manual || !conn.device) { setMode('off'); return; }
+  rcT = setTimeout(async () => {
+    if (conn.manual) return;
+    try { await openGatt(); } catch (e) { if (!conn.manual) { setMode('waiting'); scheduleReconnect(); } }
+  }, 3000);
+}
+function disconnectBike() {
+  conn.manual = true; clearTimeout(rcT); stopPolls();
+  try { if (conn.device?.gatt.connected) conn.device.gatt.disconnect(); } catch (e) {}
+  setMode('off');
+}
+function onNotify(e) { handleData(e.target.uuid, e.target.value); }
+function handleData(uuid, dv) {
+  const bytes = new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength);
+  labNote(uuid, bytes);
+  try {
+    if (uuid === U(0x2ad2)) parseFTMS(dv);
+    else if (uuid === U(0x2a63)) parseCPS(dv);
+    else if (uuid === U(0x2a5b)) parseCSC(dv);
+    else if (uuid === U(0x2a37)) parseHR(dv, 'rower');
+    else if (uuid === U(0x2a19)) setMetric('battery', dv.getUint8(0), 'bat');
+  } catch (err) {}
+  try { applyRules(uuid, dv); } catch (err) {}
+}
+async function writeBytes(ch, data) {
+  data = data instanceof Uint8Array ? data : new Uint8Array(data);
+  labLog('→ ' + shortU(ch.uuid) + '  (' + data.length + ')  ' + bytesToHex(data));
+  return gatt(() => {
+    if (ch.properties.write && ch.writeValueWithResponse) return ch.writeValueWithResponse(data);
+    if (ch.properties.writeWithoutResponse && ch.writeValueWithoutResponse) return ch.writeValueWithoutResponse(data);
+    return ch.writeValue(data);
+  });
+}
+async function writeHex(uuid, hex) {
+  const ch = conn.chars.get(normUuid(uuid));
+  if (!ch) throw new Error('brak charakterystyki ' + uuid);
+  return writeBytes(ch, hexToBytes(hex));
+}
+async function startCommands() {
+  stopPolls();
+  const c = cmdObj; if (!c || !c.char) return;
+  for (const h of (c.init || [])) { try { await writeHex(c.char, h); } catch (e) { labLog('! init: ' + e.message); } }
+  for (const p of (c.poll || [])) {
+    const list = Array.isArray(p.hex) ? p.hex : [p.hex]; let i = 0;
+    conn.polls.push(setInterval(() => { if (conn.mode !== 'on') return; writeHex(p.char || c.char, list[i++ % list.length]).catch(() => {}); }, Math.max(100, p.everyMs || 1000)));
+  }
+}
+function stopPolls() { conn.polls.forEach(clearInterval); conn.polls = []; }
+
+/* pas HR */
+async function connectHR() {
+  if (!btOk()) return;
+  try {
+    const d = await navigator.bluetooth.requestDevice({ filters: [{ services: [0x180d] }] });
+    hrc.device = d;
+    d.addEventListener('gattserverdisconnected', () => { toast('Pas HR rozłączony'); $('#btnHR').textContent = '❤️ Pas HR'; setTimeout(() => hrOpen().catch(() => {}), 3000); });
+    await hrOpen();
+  } catch (e) { if (e.name !== 'NotFoundError') toast('Pas HR: ' + e.message); }
+}
+async function hrOpen() {
+  const s = await hrc.device.gatt.connect();
+  const ch = await (await s.getPrimaryService(0x180d)).getCharacteristic(0x2a37);
+  ch.addEventListener('characteristicvaluechanged', e => parseHR(e.target.value, 'pas'));
+  await ch.startNotifications();
+  $('#btnHR').textContent = '❤️ ' + (hrc.device.name || 'Pas HR');
+  toast('Połączono pas tętna');
+}
+
+/* ================= sterowanie ================= */
+function setResistance(l, silent) {
+  l = Math.min(4, Math.max(1, l | 0)); state.level = l; LS.set('rowerek.level', l);
+  let sent = false;
+  if (conn.mode === 'on') {
+    if (cmdObj.char && cmdObj.resistance && cmdObj.resistance[l]) { writeHex(cmdObj.char, cmdObj.resistance[l]).catch(e => toast('Opór: ' + e.message)); sent = true; }
+    else if (conn.ftmsCP) { writeBytes(conn.ftmsCP, [0x04, l * 10]).catch(() => {}); sent = true; }
+  }
+  if (conn.mode === 'demo') sent = true;
+  renderLevels();
+  if (!silent && !sent && conn.mode === 'on') toast('Brak komendy oporu – uzupełnij ją w Ustawieniach (Laboratorium pomoże ją znaleźć).');
+}
+function setLed(i, silent) {
+  if (!i) return; state.led = i; LS.set('rowerek.led', i);
+  if (conn.mode === 'on' && cmdObj.char && cmdObj.led && cmdObj.led[i]) writeHex(cmdObj.char, cmdObj.led[i]).catch(e => toast('LED: ' + e.message));
+  else if (!silent && conn.mode === 'on') toast('Brak komendy LED – kolor zmieni się tylko w aplikacji.');
+  renderLed();
+}
+function renderLevels() {
+  const box = $('#levels'); if (!box.children.length) {
+    for (let i = 1; i <= 4; i++) { const b = document.createElement('button'); b.dataset.l = i; b.innerHTML = 'L' + i + '<small>' + ['lekko', 'średnio', 'mocno', 'max'][i - 1] + '</small>'; b.onclick = () => { unlockAudio(); setResistance(i); }; box.appendChild(b); }
+  }
+  const l = curLevel(); [...box.children].forEach(b => b.classList.toggle('act', +b.dataset.l === l));
+  const canSend = conn.mode === 'demo' || (conn.mode === 'on' && ((cmdObj.char && cmdObj.resistance && Object.keys(cmdObj.resistance).length) || conn.ftmsCP));
+  $('#lvlNote').textContent = conn.mode === 'on' && !canSend ? 'Komendy oporu nie są jeszcze skonfigurowane – poziom jest na razie używany tylko do obliczeń i programów.' : '';
+}
+function renderLed() {
+  const box = $('#swatches'); if (!box.children.length) {
+    for (let i = 1; i <= 12; i++) { const b = document.createElement('button'); b.style.background = COLORS[i][1]; b.style.color = COLORS[i][1]; b.title = COLORS[i][0]; b.dataset.i = i; b.onclick = () => setLed(i); box.appendChild(b); }
+  }
+  [...box.children].forEach(b => b.classList.toggle('act', +b.dataset.i === state.led));
+  document.documentElement.style.setProperty('--led', COLORS[state.led][1]);
+  const has = cmdObj.char && cmdObj.led && Object.keys(cmdObj.led).length;
+  $('#ledNote').textContent = COLORS[state.led][0] + (conn.mode === 'on' && !has ? ' · komendy LED nieskonfigurowane (kolor tylko w aplikacji)' : '');
+}
+
+/* ================= demo ================= */
+let demoT = null, demoCad = 0;
+function startDemo() {
+  if (conn.mode === 'on' || conn.mode === 'waiting') disconnectBike();
+  conn.drivers = ['symulacja']; setMode('demo');
+  demoT = setInterval(() => {
+    const target = ses?.prog ? (ses.prog.p.segs[ses.prog.i]?.rpm || 60) : 60;
+    demoCad += (target + (Math.random() - .5) * 10 - demoCad) * .25;
+    const l = state.level;
+    setMetric('cadence', demoCad, 'demo');
+    setMetric('power', demoCad * (0.35 + 0.3 * l) + (Math.random() - .5) * 6, 'demo');
+    setMetric('heartRate', 85 + l * 9 + demoCad / 4 + Math.random() * 3, 'demo');
+  }, 500);
+}
+function stopDemo() { clearInterval(demoT); demoT = null; demoCad = 0; for (const k in live) delete live[k]; setMode('off'); }
+
+/* ================= sesja / trening ================= */
+let ses = null, holdAuto = false;
+const liveBuf = [];
+function startSession(auto) {
+  ses = { id: uid(), start: Date.now(), el: 0, dist: 0, J: 0, mv: 0, sumP: 0, maxP: 0, sumC: 0, maxC: 0, sumHR: 0, nHR: 0, maxHR: 0, paused: false, idle: 0, samples: [], prog: null, progName: '', auto };
+  keepAwake(true); renderCtrl();
+  if (auto) toast('Start treningu');
+}
+function endSession() {
+  if (!ses) return;
+  const s = ses; ses = null;
+  if (s.el >= 30) {
+    hist.push({
+      id: s.id, start: s.start, dur: s.el, dist: +s.dist.toFixed(3), kcal: Math.round(s.J / 1004), wh: +(s.J / 3600).toFixed(2),
+      avgP: s.mv ? Math.round(s.sumP / s.mv) : 0, maxP: Math.round(s.maxP), avgC: s.mv ? Math.round(s.sumC / s.mv) : 0, maxC: Math.round(s.maxC),
+      avgHR: s.nHR ? Math.round(s.sumHR / s.nHR) : 0, maxHR: Math.round(s.maxHR), prog: s.progName, samples: s.samples
+    });
+    saveHist(); toast('Zapisano trening: ' + fmtT(s.el)); renderHist();
+  } else toast('Trening krótszy niż 30 s – nie zapisano');
+  keepAwake(false); renderCtrl(); renderDash(current());
+}
+function tick() {
+  const c = current();
+  liveBuf.push([c.pow, c.cad]); if (liveBuf.length > 180) liveBuf.shift();
+  const moving = c.cad > 3;
+  const linked = conn.mode === 'on' || conn.mode === 'demo' || conn.mode === 'waiting';
+  if (!moving) holdAuto = false;
+  if (!ses && moving && cfg.autoStart && linked && !holdAuto) startSession(true);
+  if (ses && !ses.paused) {
+    if (moving || !cfg.autoPause) {
+      ses.el++; ses.idle = 0;
+      ses.dist += c.spd / 3600; ses.J += c.pow;
+      if (moving) { ses.mv++; ses.sumP += c.pow; ses.sumC += c.cad; }
+      ses.maxP = Math.max(ses.maxP, c.pow); ses.maxC = Math.max(ses.maxC, c.cad);
+      if (c.hr) { ses.sumHR += c.hr; ses.nHR++; ses.maxHR = Math.max(ses.maxHR, c.hr); }
+      if (ses.el % 5 === 0) ses.samples.push([ses.el, Math.round(c.pow), Math.round(c.cad), Math.round(c.hr || 0)]);
+      runProgram();
+    } else {
+      ses.idle++;
+      if (cfg.autoStopMin > 0 && ses.idle >= cfg.autoStopMin * 60) endSession();
+    }
+  }
+  renderDash(c);
+}
+function renderCtrl() {
+  $('#btnStart').disabled = !!ses;
+  $('#btnPause').disabled = !ses; $('#btnStop').disabled = !ses;
+  $('#btnPause').textContent = ses?.paused ? '▶ Wznów' : '⏸ Pauza';
+}
+
+/* ================= program ================= */
+function progTotal(p) { return p.segs.reduce((a, s) => a + s.dur, 0); }
+function startProgram(p) {
+  unlockAudio();
+  if (!p.segs.length) { toast('Program nie ma etapów'); return; }
+  if (!ses) startSession(false);
+  ses.paused = false;
+  ses.prog = { p: clone(p), i: 0, s: ses.el }; ses.progName = p.name;
+  say('Program ' + p.name + '.'); applySeg(0);
+  showView('ride'); renderCtrl();
+}
+function applySeg(i) {
+  const P = ses.prog, s = P.p.segs[i], n = P.p.segs.length;
+  setResistance(s.lvl, true); if (s.color) setLed(s.color, true);
+  setTimeout(() => say(`Etap ${i + 1} z ${n}. ${s.note ? s.note + '. ' : ''}Opór ${s.lvl}${s.rpm ? ', kadencja ' + s.rpm : ''}. ${fmtSpeech(s.dur)}.`), 400);
+}
+function nextSeg() {
+  const P = ses?.prog; if (!P) return;
+  P.i++; P.s = ses.el;
+  if (P.i >= P.p.segs.length) { say('Program ' + P.p.name + ' zakończony. Brawo!'); beep(1320, .5); ses.prog = null; return; }
+  beep(1320, .25); applySeg(P.i);
+}
+function runProgram() {
+  const P = ses.prog; if (!P) return;
+  const s = P.p.segs[P.i], rem = s.dur - (ses.el - P.s);
+  if (rem <= 3 && rem > 0) beep(880, .12);
+  if (rem <= 0) nextSeg();
+}
+function profHtml(p, withNow) {
+  const tot = progTotal(p) || 1;
+  return p.segs.map(s => `<div style="flex:${s.dur};height:${s.lvl * 25}%;background:${s.color ? COLORS[s.color][1] : 'var(--acc)'}"></div>`).join('') + (withNow ? '<span class="now" id="profNow"></span>' : '');
+}
+
+/* ================= render jazdy ================= */
+function renderDash(c) {
+  $('#vPow').textContent = Math.round(c.pow);
+  $('#vPowEst').textContent = c.est && c.pow > 0 ? '(szac.)' : '';
+  $('#vCad').textContent = Math.round(c.cad);
+  $('#gArc').setAttribute('stroke-dasharray', Math.min(100, c.pow / (cfg.gaugeMax || 200) * 100).toFixed(1) + ' 100');
+  $('#vSpd').textContent = nf(c.spd, 1);
+  $('#vHR').textContent = c.hr ? Math.round(c.hr) : '–';
+  const s = ses;
+  $('#vTime').textContent = fmtT(s ? s.el : 0);
+  $('#vDist').textContent = nf(s ? s.dist : 0, 2);
+  $('#vKcal').textContent = nf(s ? s.J / 1004 : 0);
+  $('#vWh').textContent = nf(s ? s.J / 3600 : 0, 1);
+  $('#vAvgP').textContent = s && s.mv ? Math.round(s.sumP / s.mv) : 0;
+  $('#vMaxP').textContent = s ? Math.round(s.maxP) : 0;
+  let note = '';
+  if (s && s.paused) note = 'Pauza.';
+  else if (s && s.idle > 2 && cfg.autoPause) note = 'Auto-pauza – zacznij kręcić, aby kontynuować' + (cfg.autoStopMin ? ` (auto-koniec za ${fmtT(cfg.autoStopMin * 60 - s.idle)})` : '') + '.';
+  else if (!s && cfg.autoStart) note = 'Trening wystartuje sam, gdy zaczniesz kręcić.';
+  if (conn.mode === 'on' && performance.now() - lastDataAt > 10000) note = 'Rowerek połączony, ale nie rozpoznaję jego danych – zajrzyj do Laboratorium.';
+  $('#sesNote').textContent = note;
+  // program
+  const P = s?.prog, pc = $('#progCard');
+  if (P) {
+    pc.classList.remove('hidden');
+    const sg = P.p.segs[P.i], se = s.el - P.s, tot = progTotal(P.p), done = P.p.segs.slice(0, P.i).reduce((a, x) => a + x.dur, 0) + se;
+    $('#progTitle').textContent = 'Program · ' + P.p.name;
+    $('#segName').textContent = `Etap ${P.i + 1}/${P.p.segs.length}` + (sg.note ? ' · ' + sg.note : '');
+    $('#segInfo').textContent = `Opór L${sg.lvl}` + (sg.color ? ' · ' + COLORS[sg.color][0] : '');
+    $('#segCd').textContent = fmtT(sg.dur - se);
+    const t = $('#segTgt');
+    if (sg.rpm) { const d = c.cad - sg.rpm; t.className = 'tgt ' + (Math.abs(d) <= 5 ? 'ok' : d < 0 ? 'lo' : 'hi'); t.textContent = `cel ${sg.rpm} obr/min · ` + (Math.abs(d) <= 5 ? 'w normie ✓' : d < 0 ? 'szybciej ↑' : 'wolniej ↓'); }
+    else { t.className = 'tgt'; t.textContent = 'kadencja dowolna'; }
+    const prof = $('#progProf');
+    if (prof.dataset.id !== P.p.id + ':' + P.p.segs.length) { prof.innerHTML = profHtml(P.p, true); prof.dataset.id = P.p.id + ':' + P.p.segs.length; }
+    const now = $('#profNow'); if (now) now.style.left = (done / tot * 100) + '%';
+    const nx = P.p.segs[P.i + 1];
+    $('#progNext').textContent = nx ? `Dalej: L${nx.lvl}${nx.rpm ? ', ' + nx.rpm + ' obr/min' : ''}${nx.note ? ' – ' + nx.note : ''}` : 'Ostatni etap';
+    $('#progLeft').textContent = 'zostało ' + fmtT(tot - done);
+  } else pc.classList.add('hidden');
+  // cel dnia
+  const today = todayMinutes();
+  $('#todayTxt').textContent = Math.round(today) + ' min';
+  $('#goalTxt').textContent = 'cel ' + cfg.goalMin + ' min' + (today >= cfg.goalMin ? ' ✓' : '');
+  $('#goalBar').style.width = Math.min(100, today / cfg.goalMin * 100) + '%';
+  renderLevels();
+  drawChart();
+}
+function drawChart() {
+  const cv = $('#chart'); if (!cv.offsetParent) return;
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = 150;
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const css = getComputedStyle(document.documentElement);
+  const maxP = Math.max(cfg.gaugeMax || 200, ...liveBuf.map(x => x[0])), maxC = Math.max(100, ...liveBuf.map(x => x[1]));
+  g.strokeStyle = '#28323c'; g.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, h * i / 4); g.lineTo(w, h * i / 4); g.stroke(); }
+  const line = (idx, max, col) => {
+    g.strokeStyle = col; g.lineWidth = 2.2; g.lineJoin = 'round'; g.beginPath();
+    liveBuf.forEach((v, i) => { const x = w - (liveBuf.length - 1 - i) * (w / 179), y = h - 4 - v[idx] / max * (h - 10); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.stroke();
+  };
+  if (liveBuf.length > 1) { line(0, maxP, css.getPropertyValue('--led').trim()); line(1, maxC, css.getPropertyValue('--blue').trim()); }
+  g.fillStyle = '#8d9aa7'; g.font = '11px system-ui'; g.fillText(Math.round(maxP) + ' W', 4, 12); g.textAlign = 'right'; g.fillText(maxC + ' obr/min', w - 4, 12); g.textAlign = 'left';
+}
+
+/* ================= dźwięk / mowa / ekran ================= */
+let actx = null;
+function unlockAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {} }
+function beep(f = 880, d = .12) {
+  if (!cfg.beep) return;
+  try { unlockAudio(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.2, actx.currentTime); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + d); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d + .05); } catch (e) {}
+}
+function say(t) {
+  if (!cfg.voice || !window.speechSynthesis) return;
+  try { const u = new SpeechSynthesisUtterance(t); u.lang = 'pl-PL'; const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('pl')); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
+}
+let wl = null;
+async function keepAwake(on) {
+  try {
+    if (on && cfg.wakeLock && 'wakeLock' in navigator && !wl) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); }
+    else if (!on && wl) { await wl.release(); wl = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && ses) keepAwake(true); });
+
+/* ================= programy – lista i edytor ================= */
+function renderProgList() {
+  const box = $('#progList');
+  box.innerHTML = programs.map(p => `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div><h3>${esc(p.name)}</h3><div class="small mut">${fmtT(progTotal(p))} · ${p.segs.length} ${p.segs.length === 1 ? 'etap' : p.segs.length < 5 ? 'etapy' : 'etapów'}</div></div>
+        <button class="btn ok" data-a="run" data-id="${p.id}">▶ Start</button>
+      </div>
+      <div class="prof">${profHtml(p)}</div>
+      <div class="row"><button class="btn sm" data-a="edit" data-id="${p.id}">✎ Edytuj</button><button class="btn sm" data-a="dup" data-id="${p.id}">⧉ Kopia</button><button class="btn sm bad" data-a="del" data-id="${p.id}">Usuń</button></div>
+    </div>`).join('') || '<div class="card mut">Brak programów – dodaj pierwszy.</div>';
+}
+$('#progList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const p = programs.find(x => x.id === b.dataset.id); if (!p) return;
+  if (b.dataset.a === 'run') startProgram(p);
+  if (b.dataset.a === 'edit') openEditor(p);
+  if (b.dataset.a === 'dup') { const c = clone(p); c.id = uid(); c.name += ' (kopia)'; programs.push(c); savePrograms(); renderProgList(); }
+  if (b.dataset.a === 'del' && confirm('Usunąć program „' + p.name + '”?')) { programs = programs.filter(x => x !== p); savePrograms(); renderProgList(); }
+});
+let ed = null;
+function openEditor(p) {
+  ed = p ? clone(p) : { id: uid(), name: 'Mój program', segs: [seg(5, 1, 55, 0, 'Rozgrzewka')] };
+  const m = $('#modal'); m.classList.remove('hidden');
+  m.innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><b style="font-size:17px">${p ? 'Edycja programu' : 'Nowy program'}</b><button class="btn sm" id="edClose">✕</button></div>
+    <label class="f"><span>Nazwa</span><input id="edName" value="${esc(ed.name)}"></label>
+    <div class="prof" id="edProf"></div>
+    <div class="small mut" id="edTot" style="margin-bottom:10px"></div>
+    <div id="edSegs"></div>
+    <div class="row" style="margin:6px 0 14px"><button class="btn sm" id="edAdd">＋ Etap</button><button class="btn sm" id="edAddIv">＋ Blok interwałów</button></div>
+    <div class="row"><button class="btn pri grow" id="edSave">Zapisz</button><button class="btn" id="edCancel">Anuluj</button></div>
+  </div>`;
+  $('#edClose').onclick = $('#edCancel').onclick = closeEditor;
+  $('#edName').oninput = e => ed.name = e.target.value;
+  $('#edAdd').onclick = () => { const l = ed.segs[ed.segs.length - 1]; ed.segs.push(l ? clone(l) : seg(5, 1, 55, 0, '')); renderSegs(); };
+  $('#edAddIv').onclick = () => {
+    const n = parseInt(prompt('Ile powtórzeń?', '5'), 10); if (!n || n < 1) return;
+    const w = parseFloat(String(prompt('Czas wysiłku w minutach?', '1')).replace(',', '.')) || 1, r = parseFloat(String(prompt('Czas odpoczynku w minutach?', '1')).replace(',', '.')) || 1;
+    for (let i = 1; i <= Math.min(n, 50); i++) { ed.segs.push(seg(w, 4, 70, 1, 'Wysiłek ' + i)); ed.segs.push(seg(r, 1, 55, 5, 'Odpoczynek')); }
+    renderSegs();
+  };
+  $('#edSave').onclick = () => {
+    ed.name = ed.name.trim() || 'Program'; ed.segs = ed.segs.filter(s => s.dur > 0);
+    if (!ed.segs.length) { toast('Dodaj przynajmniej jeden etap'); return; }
+    const i = programs.findIndex(x => x.id === ed.id); if (i >= 0) programs[i] = ed; else programs.push(ed);
+    savePrograms(); renderProgList(); closeEditor(); toast('Zapisano program');
+  };
+  renderSegs();
+}
+function closeEditor() { $('#modal').classList.add('hidden'); $('#modal').innerHTML = ''; ed = null; }
+function renderSegs() {
+  const opt = (v, cur) => `<option value="${v}"${v == cur ? ' selected' : ''}>`;
+  $('#edSegs').innerHTML = ed.segs.map((s, i) => `
+    <div class="seg" data-i="${i}" style="border-left-color:${s.color ? COLORS[s.color][1] : 'var(--acc)'}">
+      <div class="g">
+        <label>Czas (min)<input type="number" min="0.25" step="0.25" data-k="dur" value="${+(s.dur / 60).toFixed(2)}"></label>
+        <label>Opór<select data-k="lvl">${[1, 2, 3, 4].map(l => opt(l, s.lvl) + 'L' + l + '</option>').join('')}</select></label>
+        <label>Obr/min<input type="number" min="0" step="5" data-k="rpm" value="${s.rpm || ''}" placeholder="dowolne"></label>
+        <label>Kolor LED<select data-k="color">${opt(0, s.color)}bez zmiany</option>${COLORS.slice(1).map((c, j) => opt(j + 1, s.color) + c[0] + '</option>').join('')}</select></label>
+      </div>
+      <div class="tools"><b class="small mut">${i + 1}.</b><input data-k="note" value="${esc(s.note)}" placeholder="Komunikat (czytany głosem)">
+        <button data-m="up" title="W górę">↑</button><button data-m="down" title="W dół">↓</button><button data-m="dup" title="Powiel">⧉</button><button data-m="del" title="Usuń">✕</button></div>
+    </div>`).join('');
+  $('#edProf').innerHTML = profHtml(ed);
+  $('#edTot').textContent = 'Łącznie: ' + fmtT(progTotal(ed)) + ' · ' + ed.segs.length + ' etapów';
+}
+$('#modal').addEventListener('input', e => {
+  const el = e.target, row = el.closest('.seg'); if (!row || !ed) return;
+  const s = ed.segs[+row.dataset.i], k = el.dataset.k; if (!k) return;
+  if (k === 'dur') s.dur = Math.round((parseFloat(String(el.value).replace(',', '.')) || 0) * 60);
+  else if (k === 'note') s.note = el.value;
+  else s[k] = parseInt(el.value, 10) || 0;
+  if (k === 'color') row.style.borderLeftColor = s.color ? COLORS[s.color][1] : 'var(--acc)';
+  $('#edProf').innerHTML = profHtml(ed); $('#edTot').textContent = 'Łącznie: ' + fmtT(progTotal(ed)) + ' · ' + ed.segs.length + ' etapów';
+});
+$('#modal').addEventListener('click', e => {
+  const b = e.target.closest('button[data-m]'); if (!b || !ed) return;
+  const i = +b.closest('.seg').dataset.i, a = ed.segs;
+  if (b.dataset.m === 'up' && i > 0) [a[i - 1], a[i]] = [a[i], a[i - 1]];
+  if (b.dataset.m === 'down' && i < a.length - 1) [a[i + 1], a[i]] = [a[i], a[i + 1]];
+  if (b.dataset.m === 'dup') a.splice(i + 1, 0, clone(a[i]));
+  if (b.dataset.m === 'del') a.splice(i, 1);
+  renderSegs();
+});
+
+/* ================= historia ================= */
+const dayKey = t => { const d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+function todayMinutes() { const k = dayKey(Date.now()); return hist.filter(s => dayKey(s.start) === k).reduce((a, s) => a + s.dur, 0) / 60 + (ses ? ses.el / 60 : 0); }
+function renderHist() {
+  const now = Date.now(), weekAgo = now - 7 * 864e5;
+  const sum = arr => arr.reduce((a, s) => ({ dur: a.dur + s.dur, dist: a.dist + s.dist, kcal: a.kcal + s.kcal, wh: a.wh + s.wh }), { dur: 0, dist: 0, kcal: 0, wh: 0 });
+  const w = sum(hist.filter(s => s.start >= weekAgo)), all = sum(hist);
+  const byDay = {}; hist.forEach(s => { const k = dayKey(s.start); byDay[k] = (byDay[k] || 0) + s.dur / 60; });
+  let streak = 0; for (let i = 0; i < 400; i++) { const k = dayKey(now - i * 864e5); if ((byDay[k] || 0) >= 5) streak++; else if (i > 0) break; }
+  $('#histSum').innerHTML = `
+    <div><b>${fmtT(w.dur)}</b><span class="small mut">ten tydzień</span></div>
+    <div><b>${nf(w.kcal)}</b><span class="small mut">kcal / 7 dni</span></div>
+    <div><b>${streak}</b><span class="small mut">dni z rzędu</span></div>
+    <div><b>${hist.length}</b><span class="small mut">treningów</span></div>
+    <div><b>${nf(all.dist, 1)}</b><span class="small mut">km łącznie</span></div>
+    <div><b>${nf(all.wh, 0)}</b><span class="small mut">Wh łącznie</span></div>`;
+  const days = []; for (let i = 13; i >= 0; i--) { const t = now - i * 864e5; days.push([new Date(t), byDay[dayKey(t)] || 0]); }
+  const mx = Math.max(cfg.goalMin, ...days.map(d => d[1]));
+  const DN = ['nd', 'pn', 'wt', 'śr', 'cz', 'pt', 'sb'];
+  $('#days').innerHTML = days.map(([d, m]) => `<div class="d" title="${Math.round(m)} min"><div class="${m >= cfg.goalMin ? 'goal' : ''}" style="height:${m / mx * 100}%"></div><span>${DN[d.getDay()]}</span></div>`).join('');
+  $('#sessList').innerHTML = hist.slice().reverse().map(s => {
+    const d = new Date(s.start);
+    return `<div class="sess"><div><b>${DN[d.getDay()]} ${d.getDate()}.${pad(d.getMonth() + 1)}, ${pad(d.getHours())}:${pad(d.getMinutes())}</b>${s.prog ? ' · ' + esc(s.prog) : ''}
+      <div class="small mut">${fmtT(s.dur)} · ${nf(s.dist, 2)} km · ${s.kcal} kcal · śr. ${s.avgP} W · maks. ${s.maxP} W · ${s.avgC} obr/min${s.avgHR ? ' · ♥ ' + s.avgHR : ''} · ${nf(s.wh, 1)} Wh</div></div>
+      <button class="x" data-id="${s.id}" title="Usuń">✕</button></div>`;
+  }).join('') || '<div class="mut small">Jeszcze nie ma zapisanych treningów.</div>';
+}
+$('#sessList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-id]'); if (!b) return;
+  if (confirm('Usunąć ten trening z historii?')) { hist = hist.filter(s => s.id !== b.dataset.id); saveHist(); renderHist(); }
+});
+$('#btnCsv').onclick = () => {
+  const n = v => String(v).replace('.', ',');
+  const rows = [['Data', 'Godzina', 'Program', 'Czas [min]', 'Dystans [km]', 'Kalorie [kcal]', 'Energia [Wh]', 'Śr. moc [W]', 'Maks. moc [W]', 'Śr. kadencja', 'Maks. kadencja', 'Śr. tętno', 'Maks. tętno'].join(';')];
+  hist.forEach(s => { const d = new Date(s.start); rows.push([dayKey(s.start), pad(d.getHours()) + ':' + pad(d.getMinutes()), '"' + String(s.prog || '').replace(/"/g, '""') + '"', n((s.dur / 60).toFixed(1)), n(s.dist.toFixed(2)), s.kcal, n(s.wh), s.avgP, s.maxP, s.avgC, s.maxC, s.avgHR, s.maxHR].join(';')); });
+  download('rowerek-treningi.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+};
+
+/* ================= laboratorium ================= */
+const lab = { rec: false, lines: [], last: new Map(), dirty: false };
+function ts() { const d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + String(d.getMilliseconds()).padStart(3, '0'); }
+function labLog(t) { lab.lines.push(ts() + '  ' + t); if (lab.lines.length > 20000) lab.lines.splice(0, 2000); scheduleLabRender(); }
+function labNote(uuid, bytes) {
+  const prev = lab.last.get(uuid); lab.last.set(uuid, bytes.slice());
+  if (lab.rec) labLog('← ' + shortU(uuid) + '  (' + bytes.length + ')  ' + bytesToHex(bytes));
+  const el = document.getElementById('val-' + uuid);
+  if (el) el.innerHTML = [...bytes].map((b, i) => { const h = b.toString(16).padStart(2, '0'); return prev && prev[i] !== b ? '<b>' + h + '</b>' : h; }).join(' ') + `  <span class="mut">[${[...bytes].join(',')}]</span>`;
+}
+function scheduleLabRender() { if (lab.dirty) return; lab.dirty = true; requestAnimationFrame(() => { lab.dirty = false; const el = $('#labLog'); if (!el.offsetParent) return; const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 30; el.textContent = lab.lines.slice(-400).join('\n') || '(log jest pusty)'; if (atBottom) el.scrollTop = el.scrollHeight; $('#labCount').textContent = lab.lines.length + ' linii'; }); }
+function labText() {
+  const head = ['# Mój Rowerek – log Bluetooth', '# ' + new Date().toString(), '# Urządzenie: ' + (conn.device?.name || '-') + ' (' + (conn.device?.id || '-') + ')', '# Struktura GATT:'];
+  conn.tree.forEach(({ service, chars }) => { head.push('#  usługa ' + service.uuid); chars.forEach(c => head.push('#    char ' + c.uuid + '  [' + propsOf(c).join(',') + ']')); });
+  return head.join('\n') + '\n\n' + lab.lines.join('\n');
+}
+const propsOf = c => ['read', 'write', 'writeWithoutResponse', 'notify', 'indicate'].filter(p => c.properties[p]);
+function renderLabTree() {
+  $('#labDev').innerHTML = conn.device ? `<b>${esc(conn.device.name || '(bez nazwy)')}</b> · <span class="mono">${esc(conn.device.id)}</span>` + (conn.tree.length ? '' : '<br>Brak widocznych usług. Dopisz UUID usług w Ustawieniach.') : 'Brak połączenia.';
+  $('#labTree').innerHTML = conn.tree.map(({ service, chars }) => `
+    <div class="svc"><h4>${esc(NAMES[shortU(service.uuid)] || NAMES[service.uuid] || 'Usługa')} <code>${shortU(service.uuid)}</code></h4>
+    ${chars.map(c => { const p = propsOf(c), w = c.properties.write || c.properties.writeWithoutResponse; return `
+      <div class="chr"><code>${shortU(c.uuid)}</code> ${esc(NAMES[shortU(c.uuid)] || NAMES[c.uuid] || '')}<br>${p.map(x => `<span class="badge">${x}</span>`).join('')}
+        ${c.properties.read ? `<button class="btn sm" data-r="${c.uuid}" style="margin-left:4px">Czytaj</button>` : ''}
+        ${w ? `<div class="row" style="margin-top:6px"><input class="mono" data-wi="${c.uuid}" placeholder="hex, np. a1 02 00" style="flex:1;padding:6px 8px"><button class="btn sm" data-w="${c.uuid}">Wyślij</button></div>` : ''}
+        <div class="val" id="val-${c.uuid}"></div></div>`; }).join('')}
+    </div>`).join('');
+}
+$('#labTree').addEventListener('click', async e => {
+  const r = e.target.closest('[data-r]'), w = e.target.closest('[data-w]');
+  try {
+    if (r) { const c = conn.chars.get(r.dataset.r); const v = await gatt(() => c.readValue()); const b = new Uint8Array(v.buffer, v.byteOffset, v.byteLength); labLog('⇐ czytaj ' + shortU(c.uuid) + '  (' + b.length + ')  ' + bytesToHex(b) + '  "' + [...b].map(x => x >= 32 && x < 127 ? String.fromCharCode(x) : '.').join('') + '"'); labNote(c.uuid, b); }
+    if (w) { const inp = document.querySelector(`[data-wi="${w.dataset.w}"]`); await writeHex(w.dataset.w, inp.value); }
+  } catch (err) { labLog('! ' + err.message); toast(err.message); }
+});
+$('#labConnect').onclick = () => (conn.mode === 'off' || conn.mode === 'demo') ? connectBike() : disconnectBike();
+$('#labRec').onclick = () => { lab.rec = !lab.rec; $('#labRec').textContent = lab.rec ? '⏺ Nagrywanie: WŁ.' : '⏺ Nagrywanie: wył.'; $('#labRec').classList.toggle('pri', lab.rec); labLog(lab.rec ? '# start nagrywania' : '# stop nagrywania'); };
+const addMark = () => { const v = $('#labMark').value.trim(); if (!v) return; labLog('★★★ ' + v); $('#labMark').value = ''; };
+$('#labMarkBtn').onclick = addMark; $('#labMark').onkeydown = e => { if (e.key === 'Enter') addMark(); };
+$('#labCopy').onclick = async () => { try { await navigator.clipboard.writeText(labText()); toast('Skopiowano log'); } catch (e) { toast('Nie udało się skopiować'); } };
+$('#labDl').onclick = () => download('rowerek-log-' + dayKey(Date.now()) + '.txt', labText());
+$('#labShare').onclick = async () => {
+  const txt = labText(), file = new File([txt], 'rowerek-log.txt', { type: 'text/plain' });
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: 'Log rowerka' }); else if (navigator.share) await navigator.share({ title: 'Log rowerka', text: txt.slice(0, 60000) }); else download('rowerek-log.txt', txt); } catch (e) {}
+};
+$('#labClear').onclick = () => { lab.lines = []; scheduleLabRender(); };
+
+/* ================= ustawienia ================= */
+const SET_NUM = ['goalMin', 'autoStopMin', 'speedFactor', 'gaugeMax', 'estA', 'estB'], SET_BOOL = ['autoStart', 'autoPause', 'autoReconnect', 'voice', 'beep', 'wakeLock'], SET_TXT = ['extraUuids', 'decoder', 'commands'];
+function renderSettings() {
+  SET_NUM.forEach(k => $('#s-' + k).value = cfg[k]);
+  SET_BOOL.forEach(k => $('#s-' + k).checked = !!cfg[k]);
+  SET_TXT.forEach(k => $('#s-' + k).value = cfg[k]);
+  $('#setErr').textContent = '';
+}
+$('#btnSaveSet').onclick = async () => {
+  for (const k of ['decoder', 'commands']) { try { JSON.parse($('#s-' + k).value || '{}'); } catch (e) { $('#setErr').textContent = 'Błąd w JSON (' + (k === 'decoder' ? 'dekoder' : 'komendy') + '): ' + e.message; return; } }
+  SET_NUM.forEach(k => { const v = parseFloat(String($('#s-' + k).value).replace(',', '.')); if (isFinite(v)) cfg[k] = v; });
+  SET_BOOL.forEach(k => cfg[k] = $('#s-' + k).checked);
+  SET_TXT.forEach(k => cfg[k] = $('#s-' + k).value);
+  if (cfg.goalMin < 1) cfg.goalMin = 1;
+  saveCfg(); parseCfgJson(); $('#setErr').textContent = '';
+  if (conn.mode === 'on') await startCommands();
+  setMode(conn.mode); toast('Zapisano ustawienia' + (conn.mode === 'on' ? ' (nowe UUID usług zadziałają po ponownym połączeniu)' : ''));
+};
+$('#btnBackup').onclick = () => download('rowerek-kopia-' + dayKey(Date.now()) + '.json', JSON.stringify({ app: 'moj-rowerek', v: 1, cfg, programs, history: hist }, null, 1), 'application/json');
+$('#btnRestore').onclick = () => $('#fileRestore').click();
+$('#fileRestore').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.cfg) cfg = Object.assign({}, DEF_CFG, d.cfg);
+    if (Array.isArray(d.programs)) programs = d.programs;
+    if (Array.isArray(d.history)) { const ids = new Set(hist.map(s => s.id)); d.history.forEach(s => { if (!ids.has(s.id)) hist.push(s); }); hist.sort((a, b) => a.start - b.start); }
+    saveCfg(); savePrograms(); saveHist(); parseCfgJson(); renderSettings(); renderProgList(); renderHist(); setMode(conn.mode); toast('Zaimportowano kopię');
+  } catch (err) { toast('Niepoprawny plik kopii'); }
+  e.target.value = '';
+};
+
+/* ================= nawigacja i przyciski ================= */
+function showView(v) {
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('act', s.id === 'v-' + v));
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('act', b.dataset.v === v));
+  if (v === 'hist') renderHist(); if (v === 'set') renderSettings(); if (v === 'prog') renderProgList(); if (v === 'lab') { renderLabTree(); scheduleLabRender(); }
+  window.scrollTo(0, 0);
+}
+$('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); };
+$('#btnConnect').onclick = () => { unlockAudio(); (conn.mode === 'off' || conn.mode === 'demo') ? connectBike() : disconnectBike(); };
+$('#btnDemo').onclick = () => { unlockAudio(); conn.mode === 'demo' ? stopDemo() : startDemo(); };
+$('#btnHR').onclick = connectHR;
+$('#btnStart').onclick = () => { unlockAudio(); if (!ses) { startSession(false); renderDash(current()); } };
+$('#btnPause').onclick = () => { if (!ses) return; ses.paused = !ses.paused; renderCtrl(); renderDash(current()); };
+$('#btnStop').onclick = () => { holdAuto = true; endSession(); };
+$('#btnSkip').onclick = () => nextSeg();
+$('#btnProgStop').onclick = () => { if (ses?.prog) { ses.prog = null; say('Program przerwany.'); renderDash(current()); } };
+$('#btnNewProg').onclick = () => openEditor(null);
+window.addEventListener('beforeunload', e => { if (ses && ses.el >= 30) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('pagehide', () => { if (ses && ses.el >= 30) endSession(); });
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+
+/* ================= start ================= */
+savePrograms();
+setMode('off');
+renderCtrl();
+renderDash(current());
+setInterval(tick, 1000);
+if (btWhy()) $('#connInfo').innerHTML = '<span style="color:var(--warn)">' + esc(btWhy()) + '</span> Tryb demo działa wszędzie.';
+</script>
+</body>
+</html>
